@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  rollNumber    String          @id @map("roll_number")
+  name          String
+  email         String          @unique
+  department    String
+  password      String
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  borrowRecords BorrowRecord[]
+
+  @@map("students")
+}
+
+model Admin {
+  adminId   String   @id @map("admin_id")
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+model Book {
+  bookId        String          @id @map("book_id")
+  title         String
+  author        String
+  isbn          String
+  status        BookStatus      @default(AVAILABLE)
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  borrowRecords BorrowRecord[]
+
+  @@map("books")
+}
+
+model BorrowRecord {
+  recordId          Int              @id @default(autoincrement()) @map("record_id")
+  bookId            String           @map("book_id")
+  studentRollNumber String           @map("student_roll_number")
+  borrowedDate      DateTime         @default(now()) @map("borrowed_date")
+  dueDate           DateTime         @map("due_date")
+  returnDate        DateTime?        @map("return_date")
+  status            BorrowStatus     @default(ACTIVE)
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  book    Book    @relation(fields: [bookId], references: [bookId])
+  student Student @relation(fields: [studentRollNumber], references: [rollNumber])
+
+  @@map("borrow_records")
+}
+
+enum BookStatus {
+  AVAILABLE
+  BORROWED
+}
+
+enum BorrowStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+}
